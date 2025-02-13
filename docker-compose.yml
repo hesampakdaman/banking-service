@@ -1,0 +1,8 @@
+services:
+  banking-service:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - LOG_LEVEL=info
+    restart: unless-stopped
