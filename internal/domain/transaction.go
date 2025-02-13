@@ -10,7 +10,6 @@ type TransactionType string
 const (
 	Deposit    TransactionType = "deposit"
 	Withdrawal TransactionType = "withdrawal"
-	Transfer   TransactionType = "transfer"
 )
 
 // Transaction represents a bank transaction entity.
@@ -27,7 +26,7 @@ func NewTransaction(accountID string, txnType TransactionType, amount float64) (
 		return Transaction{}, ErrInvalidAccountID
 	}
 
-	if txnType != Deposit && txnType != Withdrawal && txnType != Transfer {
+	if txnType != Deposit && txnType != Withdrawal {
 		return Transaction{}, ErrInvalidTransactionType
 	}
 
