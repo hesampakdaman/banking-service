@@ -84,7 +84,7 @@ func (r *MemoryRepository) ListTransactions(ctx context.Context, accountID strin
 
 	transactions, exists := r.transactions[accountID]
 	if !exists {
-		return nil
+		return []domain.Transaction{}
 	}
 
 	sortedTransactions := make([]domain.Transaction, len(transactions))
