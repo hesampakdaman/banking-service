@@ -50,7 +50,7 @@ func (s *BankService) CreateTransaction(ctx context.Context, accountID string, t
 		return domain.Transaction{}, err
 	}
 
-	if err := s.repo.Record(ctx, account, transaction); err != nil {
+	if err := s.repo.Record(ctx, account); err != nil {
 		logger.ErrorContext(ctx, "Failed to record transaction", "error", err.Error())
 		return domain.Transaction{}, err
 	}

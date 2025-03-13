@@ -32,21 +32,21 @@ func (s *BankService) Transfer(ctx context.Context, fromAccountID, toAccountID s
 	}
 
 	// Record both transactions, ensuring consistency
-	if err := s.repo.Record(ctx, fromAccount, fromTxn); err != nil {
+	if err := s.repo.Record(ctx, fromAccount); err != nil {
 		logger.ErrorContext(ctx, "Failed to record source transaction", "error", err.Error())
 		return domain.Transaction{}, domain.Transaction{}, err
 	}
 
-	if err := s.repo.Record(ctx, toAccount, toTxn); err != nil {
+	if err := s.repo.Record(ctx, toAccount); err != nil {
 		// **Rollback:** Attempt to revert withdrawal
 		logger.ErrorContext(ctx, "Failed to record destination transaction, attempting rollback", "error", err.Error())
 
-		rollbackTxn, rollbackErr := fromAccount.Deposit(amount)
+		_, rollbackErr := fromAccount.Deposit(amount)
 
 		if rollbackErr != nil {
 			logger.ErrorContext(ctx, "Rollback failed, system may be in an inconsistent state", "rollback_error", rollbackErr.Error())
 		} else {
-			if recErr := s.repo.Record(ctx, fromAccount, rollbackTxn); recErr != nil {
+			if recErr := s.repo.Record(ctx, fromAccount); recErr != nil {
 				logger.ErrorContext(ctx, "Failed to record rollback transaction", "rollback_error", recErr.Error())
 			} else {
 				logger.WarnContext(ctx, "Rollback successful")

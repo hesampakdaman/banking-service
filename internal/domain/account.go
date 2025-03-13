@@ -2,9 +2,10 @@ package domain
 
 // Account represents a bank account entity.
 type Account struct {
-	ID      string  `json:"id"`
-	Owner   string  `json:"owner"`
-	Balance float64 `json:"balance"`
+	ID              string  `json:"id"`
+	Owner           string  `json:"owner"`
+	Balance         float64 `json:"balance"`
+	NewTransactions []Transaction
 }
 
 func NewAccount(ID string, owner string, initialBalance float64) (Account, error) {
@@ -30,9 +31,14 @@ func (a *Account) Deposit(amount float64) (Transaction, error) {
 		return Transaction{}, ErrInvalidAmount
 	}
 
+	txn, err := a.recordTransaction(Deposit, amount)
+	if err != nil {
+		return txn, err
+	}
+
 	a.Balance += amount
 
-	return NewTransaction(a.ID, Deposit, amount)
+	return txn, err
 }
 
 func (a *Account) Withdraw(amount float64) (Transaction, error) {
@@ -43,36 +49,41 @@ func (a *Account) Withdraw(amount float64) (Transaction, error) {
 		return Transaction{}, ErrInsufficientFunds
 	}
 
+	txn, err := a.recordTransaction(Withdrawal, amount)
+	if err != nil {
+		return txn, err
+	}
+
 	a.Balance -= amount
 
-	return NewTransaction(a.ID, Withdrawal, amount)
+	return txn, err
 }
 
 func (a *Account) Transfer(to *Account, amount float64) (Transaction, Transaction, error) {
 	if a.ID == to.ID {
 		return Transaction{}, Transaction{}, ErrSelfTransfer
 	}
-	if amount <= 0 {
-		return Transaction{}, Transaction{}, ErrInvalidAmount
-	}
-	if amount > a.Balance {
-		return Transaction{}, Transaction{}, ErrInsufficientFunds
+
+	fromTxn, err := a.Withdraw(amount)
+	if err != nil {
+		return Transaction{}, Transaction{}, err
 	}
 
-	a.Balance -= amount
-	to.Balance += amount
+	toTxn, err := to.Deposit(amount)
+	if err != nil {
+		return Transaction{}, Transaction{}, err
+	}
 
-	return Transaction{
-			ID:        GetUUID(),
-			AccountID: a.ID,
-			Type:      Withdrawal,
-			Amount:    amount,
-			Timestamp: GetTimeNow(),
-		}, Transaction{
-			ID:        GetUUID(),
-			AccountID: to.ID,
-			Type:      Deposit,
-			Amount:    amount,
-			Timestamp: GetTimeNow(),
-		}, nil
+	return fromTxn, toTxn, nil
+}
+
+func (a *Account) recordTransaction(ttype TransactionType, amount float64) (Transaction, error) {
+	txn, err := NewTransaction(a.ID, ttype, amount)
+	if err != nil {
+		return txn, err
+	}
+
+	a.NewTransactions = append(a.NewTransactions, txn)
+
+	return txn, err
 }

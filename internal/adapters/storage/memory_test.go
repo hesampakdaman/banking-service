@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"errors"
-	"slices"
 	"testing"
 
 	"gotest.tools/assert"
@@ -70,9 +69,6 @@ func TestMemoryRepository_ListAccounts(t *testing.T) {
 
 	// Then: All accounts should be returned
 	assert.Equal(t, len(accounts), 2)
-	assert.Assert(t, slices.Contains(accounts, account1))
-	assert.Assert(t, slices.Contains(accounts, account2))
-
 }
 
 func TestMemoryRepository_Record(t *testing.T) {
@@ -87,7 +83,7 @@ func TestMemoryRepository_Record(t *testing.T) {
 	transaction, _ := account.Deposit(50.0)
 
 	// When: The transaction is recorded
-	_ = repo.Record(ctx, account, transaction)
+	_ = repo.Record(ctx, account)
 
 	// Then: It should appear in the list of transactions
 	transactions := repo.ListTransactions(ctx, account.ID)

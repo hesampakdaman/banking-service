@@ -14,6 +14,6 @@ type Repository interface {
 	ListAccounts(ctx context.Context) []domain.Account
 
 	// Transaction-related operations
-	Record(ctx context.Context, account domain.Account, txn domain.Transaction) error
+	Record(ctx context.Context, account domain.Account) error
 	ListTransactions(ctx context.Context, accountID string) []domain.Transaction
 }

@@ -17,11 +17,11 @@ type mockRepository struct {
 }
 
 // Record overrides the normal Record function to simulate failure
-func (m *mockRepository) Record(ctx context.Context, account domain.Account, txn domain.Transaction) error {
+func (m *mockRepository) Record(ctx context.Context, account domain.Account) error {
 	if m.failOnRecord {
 		return errors.New("simulated transaction failure")
 	}
-	return m.MemoryRepository.Record(ctx, account, txn)
+	return m.MemoryRepository.Record(ctx, account)
 }
 
 func TestBankService_Transfer(t *testing.T) {

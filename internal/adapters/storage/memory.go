@@ -59,7 +59,7 @@ func (r *MemoryRepository) ListAccounts(ctx context.Context) []domain.Account {
 	return accounts
 }
 
-func (r *MemoryRepository) Record(ctx context.Context, account domain.Account, txn domain.Transaction) error {
+func (r *MemoryRepository) Record(ctx context.Context, account domain.Account) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -68,12 +68,21 @@ func (r *MemoryRepository) Record(ctx context.Context, account domain.Account, t
 		return domain.ErrInvalidAccountID
 	}
 
-	if account.ID != txn.AccountID {
-		return domain.ErrAccountTransactionMismatch
+	for _, txn := range account.NewTransactions {
+		if account.ID != txn.AccountID {
+			return domain.ErrAccountTransactionMismatch
+		}
 	}
 
-	r.accounts[account.ID] = account
-	r.transactions[txn.AccountID] = append(r.transactions[txn.AccountID], txn)
+	for _, txn := range account.NewTransactions {
+		r.transactions[txn.AccountID] = append(r.transactions[txn.AccountID], txn)
+	}
+	r.accounts[account.ID] = domain.Account{
+		ID:              account.ID,
+		Owner:           account.Owner,
+		Balance:         account.Balance,
+		NewTransactions: []domain.Transaction{},
+	}
 
 	return nil
 }
